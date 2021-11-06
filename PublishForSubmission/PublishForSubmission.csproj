@@ -3,6 +3,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <ReleaseVersion>0.2</ReleaseVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="..\biz.trsolutions.publish\Editor\Publisher.cs">
+      <Link>Publisher.cs</Link>
+    </Compile>
+    <Compile Include="..\biz.trsolutions.publish\Editor\IgnoreParser.cs">
+      <Link>IgnoreParser.cs</Link>
+    </Compile>
+    <Compile Include="..\biz.trsolutions.publish\Editor\Compress.cs">
+      <Link>Compress.cs</Link>
+    </Compile>
+  </ItemGroup>
 </Project>

@@ -1,0 +1,22 @@
+{
+  "name": "biz.trsolutions.publish",
+  "version": "0.1.1",
+  "displayName": "Publish For Submission",
+  "description": "This packages your game source, build, video and documentation for submission",
+  "unity": "2019.1",
+  "unityRelease": "0b5",
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html",
+  "keywords": [
+    "publish",
+    "zip",
+    "submission"
+  ],
+  "author": {
+    "name": "Thomas O'Dell",
+    "email": "thomas_odell@trsolutions.biz",
+    "url": "https://www.trsolutions.biz"
+  },
+  "type": "tool"
+}
