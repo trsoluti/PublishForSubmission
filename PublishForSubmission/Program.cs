@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEditor.TRSolutions.Publish;
 
 namespace PublishForSubmission
 {
@@ -6,7 +7,7 @@ namespace PublishForSubmission
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            new Publisher().PublishEverything();
         }
     }
 }

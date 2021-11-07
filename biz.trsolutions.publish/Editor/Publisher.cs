@@ -1,14 +1,39 @@
+/*
+ * Publisher class
+ * 
+ * Copyright (c) 2021 TR Solutions Pte Ltd
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using UnityEditor;
 using UnityEngine;
 
 
 namespace UnityEditor.TRSolutions.Publish
 {
+    /// <summary>
+    /// Class <c>Publisher</c> provides the mechanism to publish a Unity project to a set of zip files.
+    /// </summary>
     public class Publisher : ScriptableObject {
         DirectoryInfo projectRoot;
         DirectoryInfo parent;
@@ -19,6 +44,11 @@ namespace UnityEditor.TRSolutions.Publish
         string documentationFolderName;
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// This method is the entry point for one-click publishing
+        /// using default locations for the build, recording and documentation
+        /// folders.
+        /// <summary>
         [MenuItem("File/Publish")]
         static void Publish() {
             Publisher.CreateInstance<Publisher>().PublishEverything();
@@ -27,6 +57,23 @@ namespace UnityEditor.TRSolutions.Publish
         private void Awake()
         {
 #else
+        /// <summary>
+        /// Constructs a new Publisher class with defaults
+        /// <example>Usually called as follows:
+        /// <code>
+        ///   new Publisher().PublishEverything();
+        /// </code>
+        /// </example>
+        /// <para>From within the Unity Editor, use the <c>CreateInstance</c> method instead.</para>
+        /// <para>The defaults are:
+        /// <list type="bullet">
+        /// <item><description>project root: current directory</description></item>
+        /// <item><description>target root: <c>projectName package</c>(located in the same folder that contains the project)</description></item>
+        /// <item><description>build folder: <c>Build</c> or <c>Builds</c></description></item>
+        /// <item><description>recordings folder: <c>Recordings</c></description></item>
+        /// <item><description>documentation folder: <c>Documentation</c></description></item>
+        /// </list></para>
+        /// </summary>
         public Publisher() {
 #endif
             projectRoot = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -38,7 +85,15 @@ namespace UnityEditor.TRSolutions.Publish
             documentationFolderName = "Documentation";
         }
 
-        private void PublishEverything()
+        /// <summary>
+        /// Publishes the source files (zipped) and, if present:
+        /// <list type="bullet">
+        /// <item><description>executable build (zipped)</description></item>
+        /// <item><description>recordings</description></item>
+        /// <item><description>documentation</description></item>
+        /// </list>
+        /// </summary>
+        public void PublishEverything()
         {
             // Find the total # of files we will be publishing
             // Passing null to the methods causes them to just
@@ -82,12 +137,16 @@ namespace UnityEditor.TRSolutions.Publish
             if (buildFolder != null)
             {
                 var buildTarget = Path.Combine(target, "Build.zip");
-                using FileStream zipToOpen = new FileStream(buildTarget, FileMode.Create);
-                using ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create);
-                foreach (var _obj in ZipBuildFiles(archive))
+                using (FileStream zipToOpen = new FileStream(buildTarget, FileMode.Create))
                 {
-                    totalFilesCopied++;
-                    EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying build files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                    {
+                        foreach (var _obj in ZipBuildFiles(archive))
+                        {
+                            totalFilesCopied++;
+                            EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying build files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                        }
+                    }
                 }
             }
 
@@ -95,13 +154,15 @@ namespace UnityEditor.TRSolutions.Publish
             var projectTarget = Path.Combine(target, projectRoot.Name + ".zip");
             using (FileStream zipToOpen = new FileStream(projectTarget, FileMode.Create))
             {
-                using ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create);
-                var ignoreParser = new IgnoreParser();
-                //+ print($"IgnoreParser:\n{ignoreParser}");
-                foreach (var _obj in ZipSourceFiles(archive))
+                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
                 {
-                    totalFilesCopied++;
-                    EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying source files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    var ignoreParser = new IgnoreParser();
+                    //+ print($"IgnoreParser:\n{ignoreParser}");
+                    foreach (var _obj in ZipSourceFiles(archive))
+                    {
+                        totalFilesCopied++;
+                        EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying source files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    }
                 }
             }
 
@@ -127,6 +188,11 @@ namespace UnityEditor.TRSolutions.Publish
             EditorUtility.ClearProgressBar();
         }
 
+        /// <summary>
+        /// Gets the name of the executable build folder, if present.
+        /// </summary>
+        /// <param name="projectRoot">The project root directory.</param>
+        /// <returns>The build folder, or <c>null</c> if no build folder found</returns>
         private static DirectoryInfo GetBuildFolder(DirectoryInfo projectRoot)
         {
             foreach (var fileInfo in projectRoot.EnumerateDirectories())
@@ -142,6 +208,13 @@ namespace UnityEditor.TRSolutions.Publish
             return null;
         }
 
+        /// <summary>
+        /// Enumerates the name of each non-ignored file in the given folder, descending recursively.
+        /// </summary>
+        /// <param name="folderRelativePath">The path relative to the project root</param>
+        /// <param name="folder">The folder being processed</param>
+        /// <param name="ignoreParser">A parser that can tell whether or not to ignore any given file path</param>
+        /// <returns>The filesystem info of the next file in the list, along with the file's relative path.</returns>
         private static IEnumerable<Tuple<FileSystemInfo, string>> EnumerateFileSystemInfoOfFolderWithFilter(string folderRelativePath, DirectoryInfo folder, IgnoreParser ignoreParser)
         {
             foreach (var fileInfo in folder.EnumerateFileSystemInfos("*", SearchOption.TopDirectoryOnly))
@@ -174,16 +247,34 @@ namespace UnityEditor.TRSolutions.Publish
             }
         }
 
+        /// <summary>
+        /// Compresses all the executable builds in our project.
+        /// </summary>
+        /// <param name="zipArchive">The archive into which to compress the files.</param>
+        /// <returns>A yield of control after each file is archived.</returns>
         private IEnumerable ZipBuildFiles(ZipArchive zipArchive)
         {
             return ZipFolder(zipArchive, buildFolder, null);
         }
 
+        /// <summary>
+        /// Compresses all the git-archiveable source files in our project.
+        /// </summary>
+        /// <param name="zipArchive">The archive into which to compress the files.</param>
+        /// <returns>A yield of control after each file is archived.</returns>
         private IEnumerable ZipSourceFiles(ZipArchive zipArchive)
         {
             return ZipFolder(zipArchive, projectRoot, new IgnoreParser());
         }
 
+        /// <summary>
+        /// Compresses all the non-ignored files in the given folder into the given archive.
+        /// <para>The method yields control after each file is processed to allow for progress monitoring.</para>
+        /// </summary>
+        /// <param name="zipArchive">The archive into which to compress the files.</param>
+        /// <param name="folder">The folder to compress</param>
+        /// <param name="ignoreParser">If non-null, a parser that can decide whether or not to include a file.</param>
+        /// <returns>A yield of control after each file is archived.</returns>
         private static IEnumerable ZipFolder(ZipArchive zipArchive, DirectoryInfo folder, IgnoreParser ignoreParser)
         {
             if (folder == null)
@@ -216,16 +307,33 @@ namespace UnityEditor.TRSolutions.Publish
             }
         }
 
+        /// <summary>
+        /// Copies all the files in the recordings folder to the given target folder.
+        /// </summary>
+        /// <param name="target">Where to copy the files.</param>
+        /// <returns>A yield of control after each file is copied.</returns>
         private IEnumerable CopyRecordings(string target)
         {
             return CopyFiles(target, new DirectoryInfo(recordingsFolderName));
         }
 
+        /// <summary>
+        /// Copies all the files in the documentation folder to the given target folder.
+        /// </summary>
+        /// <param name="target">Where to copy the files.</param>
+        /// <returns>A yield of control after each file is copied.</returns>
         private IEnumerable CopyDocumentation(string target)
         {
             return CopyFiles(target, new DirectoryInfo(documentationFolderName));
         }
 
+        /// <summary>
+        /// Copies the files in the given folder to the given target folder.
+        /// <para>The method yields control after each file is processed to allow for progress monitoring.</para>
+        /// </summary>
+        /// <param name="target">The folder from which to copy.</param>
+        /// <param name="sourceDirectory">The folder to which to copy.</param>
+        /// <returns>A yield of control after each file is copied.</returns>
         private static IEnumerable CopyFiles(string target, DirectoryInfo sourceDirectory)
         {
             foreach (var file in sourceDirectory.EnumerateFiles())
