@@ -1,4 +1,5 @@
 # PublishForSubmission
+
 A simple package for Unity3D to allow students to package their projects for submission.
 
 To most Unity users, "publish" means make available to the wider world.
@@ -27,3 +28,14 @@ Clicking that item will do the following:
 - Copy the contents of your `Recordings` folder (where the Unity Recorder stores your videos); and
 - Copy the contents of your `Documentation` folder.
 
+## Installation
+
+If you're not able to get this item in the Unity Asset Store, you can clone this repository,
+then copy the `biz.trsolutions.publish` folder to the `Packages` folder of your Unity project.
+
+If you'd like to run this as a standalone application, you can clone this project from within Visual Studio,
+and then run it from the command line using `dotnet`.
+
+```sh
+dotnet PublishForSubmission/PublishForSubmission/bin/Debug/net5.0/PublishForSubmission.dll
+```

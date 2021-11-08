@@ -24,6 +24,6 @@ Global
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		description = A simple package for Unity3D to allow students to package their projects for submission
-		version = 0.3
+		version = 0.4
 	EndGlobalSection
 EndGlobal

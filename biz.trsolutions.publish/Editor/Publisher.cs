@@ -128,8 +128,16 @@ namespace UnityEditor.TRSolutions.Publish
 
             // Now do the copying for real, using a percentage of the total
             var target = Path.Combine(parentName, targetFolderName);
-            Debug.Log(string.Format("Project will be published to {0}", target));
-            Directory.CreateDirectory(target);
+            try
+            {
+                Directory.CreateDirectory(target);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Unable to create target folder! System return error {e}");
+                return;
+            }
+            Debug.Log($"Project will be published to {target}");
 
             int totalFilesCopied = 0;
 
@@ -137,52 +145,80 @@ namespace UnityEditor.TRSolutions.Publish
             if (buildFolder != null)
             {
                 var buildTarget = Path.Combine(target, "Build.zip");
-                using (FileStream zipToOpen = new FileStream(buildTarget, FileMode.Create))
+                try
                 {
-                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                    using (FileStream zipToOpen = new FileStream(buildTarget, FileMode.Create))
                     {
-                        foreach (var _obj in ZipBuildFiles(archive))
+                        using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
                         {
-                            totalFilesCopied++;
-                            EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying build files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                            foreach (var _obj in ZipBuildFiles(archive))
+                            {
+                                totalFilesCopied++;
+                                EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying build files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                            }
                         }
                     }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Unable to publish build files! System returned error {e}");
                 }
             }
 
             // Copy the source files
             var projectTarget = Path.Combine(target, projectRoot.Name + ".zip");
-            using (FileStream zipToOpen = new FileStream(projectTarget, FileMode.Create))
+            try
             {
-                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
+                using (FileStream zipToOpen = new FileStream(projectTarget, FileMode.Create))
                 {
-                    var ignoreParser = new IgnoreParser();
-                    //+ print($"IgnoreParser:\n{ignoreParser}");
-                    foreach (var _obj in ZipSourceFiles(archive))
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Create))
                     {
-                        totalFilesCopied++;
-                        EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying source files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                        var ignoreParser = new IgnoreParser();
+                        //+ print($"IgnoreParser:\n{ignoreParser}");
+                        foreach (var _obj in ZipSourceFiles(archive))
+                        {
+                            totalFilesCopied++;
+                            EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying source files", (float)totalFilesCopied / (float)totalFilesToCopy);
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Unable to publish source code! System returned error {e}");
             }
 
             // Copy the recordings
             if (Directory.Exists("Recordings"))
             {
-                foreach (var _obj in CopyRecordings(target))
+                try
                 {
-                    totalFilesCopied++;
-                    EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying recordings", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    foreach (var _obj in CopyRecordings(target))
+                    {
+                        totalFilesCopied++;
+                        EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying recordings", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Unable to publish recordings! System returned error {e}");
                 }
             }
 
             // Copy the documentation
             if (Directory.Exists("Documentation"))
             {
-                foreach (var _obj in CopyDocumentation(target))
+                try
                 {
-                    totalFilesCopied++;
-                    EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying documentation", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    foreach (var _obj in CopyDocumentation(target))
+                    {
+                        totalFilesCopied++;
+                        EditorUtility.DisplayProgressBar($"publishing {projectRoot.Name}", "Copying documentation", (float)totalFilesCopied / (float)totalFilesToCopy);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Unable to publish documentation! System returned error {e}");
                 }
             }
             EditorUtility.ClearProgressBar();

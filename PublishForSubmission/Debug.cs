@@ -33,6 +33,10 @@ namespace UnityEditor
         {
             Console.WriteLine(obj.ToString());
         }
+        public static void LogError(object obj)
+        {
+            Console.WriteLine(obj.ToString());
+        }
     }
 #endif
 }
