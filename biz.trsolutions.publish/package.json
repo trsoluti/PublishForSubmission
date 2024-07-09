@@ -1,6 +1,6 @@
 {
   "name": "biz.trsolutions.publish",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Publish For Submission",
   "description": "This packages your game source, build, video and documentation for submission",
   "unity": "2019.4",
